@@ -133,16 +133,6 @@ Statement Database::prepare(const char *query) {
     return Statement(this, query);
 }
 
-int64_t Database::lastInsertRowid() const {
-    assert(impl);
-    return sqlite3_last_insert_rowid(impl->db);
-}
-
-uint64_t Database::changes() const {
-    assert(impl);
-    return sqlite3_changes(impl->db);
-}
-
 Statement::Statement(Database *db, const char *sql)
     : impl(std::make_unique<StatementImpl>(db->impl->db, sql))
 {
@@ -388,6 +378,16 @@ void Statement::reset() {
 void Statement::clearBindings() {
     assert(impl);
     sqlite3_clear_bindings(impl->stmt);
+}
+
+int64_t Statement::lastInsertRowId() const {
+    assert(impl);
+    return sqlite3_last_insert_rowid(sqlite3_db_handle(impl->stmt));
+}
+
+uint64_t Statement::changes() const {
+    assert(impl);
+    return sqlite3_changes(sqlite3_db_handle(impl->stmt));
 }
 
 Transaction::Transaction(Database& db_, Mode mode)
